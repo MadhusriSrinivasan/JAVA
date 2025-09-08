@@ -228,24 +228,3 @@ Monitor: LG UltraWide Size: 34in
 Department-wise asset counts:
 IT : 2
 
-package madhu;
-public class AssetAppMain {
-		    public static void main(String[] args) {
-		        AssetService service = new AssetService();
-		        Employee e1 = new Employee("E001", "Madhu", "madhu@gmail.com", "IT");
-		        Employee e2 = new Employee("E002", "Sri", "sri@gmail.com", "IT");
-		        service.registerEmployee(e1);
-		        service.registerEmployee(e2);
-		        Asset l1 = new Laptop("L001", "Dell XPS", 16, 512);
-		        Asset p1 = new Phone("P001", "iPhone 13", "Verizon", 125);
-		        Asset m1 = new Moniter("M001", "LG UltraWide", 34);
-		        service.registerAsset(l1);
-		        service.registerAsset(p1);
-		        service.registerAsset(m1);
-		        service.assignAsset("L001", "E001");
-		        service.assignAsset("P001", e2);
-		        service.returnAsset("P001");
-		        service.retireAsset("L001");		        
-		        service.auditReport();
-		    }
-		}
