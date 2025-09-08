@@ -1,0 +1,251 @@
+QUESTION:
+Design and implement a console-based IT Asset Management app to register assets, assign to 
+employees, track lifecycle, and generate audits using OOP in Java.
+Requirements:
+1. Create at least 4 classes:
+o Asset – assetId, type (Laptop/Phone), model, status, assignedTo.
+o Employee – empId, name, email, department.
+o Assignment – assignmentId, asset, employee, startDate, endDate, condition.
+o AssetService – register/assign/return/retire assets and audits.
+2. Each class must include:
+o ≥4 instance/static variables.
+o A constructor to initialize values.
+o ≥5 methods (getters/setters, registerAsset(), assignAsset(), returnAsset(), 
+auditReport()).
+3. Demonstrate OOPS Concepts:
+o Inheritance → Laptop/Phone/Monitor extends Asset.
+o Method Overloading → assignAsset() by empId or Employee object, with/without 
+endDate.
+o Method Overriding → device-specific depreciation()/display().
+o Polymorphism → maintain List<Asset> and compute reports by overridden 
+methods.
+o Encapsulation → state transitions (IN_STOCK→ASSIGNED→RETIRED) via 
+methods.
+4. Write a Main class (AssetAppMain) to test:
+o Register assets/employees, assign and return items.
+o Retire devices and print audit logs and department-wise asset counts.
+SOURCE CODE:
+package madhu;
+public enum AssetStatus{ IN_STOCK, ASSIGNED, RETIRED; }
+	abstract class Asset {
+	    protected String assetId, model, assignedTo;
+	    protected AssetStatus status;
+	    protected String type;
+	    public Asset(String assetId, String model, String type) {
+	        this.assetId = assetId;
+	        this.model = model;
+	        this.type = type;
+	        this.status = AssetStatus.IN_STOCK;
+	        this.assignedTo = null;
+	    }
+	    public String getAssetId() { return assetId; }
+	    public String getModel() { return model; }
+	    public String getType() { return type; }
+	    public AssetStatus getStatus() { return status; }
+	    public String getAssignedTo() { return assignedTo; }
+	    public void setStatus(AssetStatus status) { this.status = status; }
+	    public void setAssignedTo(String empId) { this.assignedTo = empId; }
+	    public abstract double depreciation(); 
+	    public abstract void display(); 
+	}
+package madhu;
+public class Laptop extends Asset {
+		    private int ramGB, storageGB;
+            public Laptop(String assetId, String model, int ramGB, int storageGB) {
+		        super(assetId, model, "Laptop");
+		        this.ramGB = ramGB;
+		        this.storageGB = storageGB;
+		    }
+		    public double depreciation() { return 0.20; }
+		    public void display() {
+		        System.out.println("Laptop: " + model + " RAM: " + ramGB + "GB Storage: " + storageGB + "GB");
+		    }
+
+
+}
+package madhu;
+public class Phone extends Asset {
+		    private String carrier;
+		    private int batteryCycle;
+		    public Phone(String assetId, String model, String carrier, int batteryCycle) {
+		        super(assetId, model, "Phone");
+		        this.carrier = carrier;
+		        this.batteryCycle = batteryCycle;
+		    }
+		    public double depreciation() { return 0.35; }
+		    public void display() {
+		        System.out.println("Phone: " + model + " Carrier: " + carrier + " Battery Cycles: " + batteryCycle);
+		    }
+		}
+package madhu;
+public class Moniter extends Asset {
+		    private int sizeInInches;
+		    public Moniter(String assetId, String model, int sizeInInches) {
+		        super(assetId, model, "Monitor");
+		        this.sizeInInches = sizeInInches;
+		    }
+		    public double depreciation() { return 0.15; }
+		    public void display() {
+		        System.out.println("Monitor: " + model + " Size: " + sizeInInches + "in");
+		    }
+		}
+package madhu;
+public class Employee {
+		    private String empId, name, email, department;
+		    public Employee(String empId, String name, String email, String department) {
+		        this.empId = empId;
+		        this.name = name;
+		        this.email = email;
+		        this.department = department;
+		    }
+		    public String getEmpId() { return empId; }
+		    public String getName() { return name; }
+		    public String getEmail() { return email; }
+		    public String getDepartment() { return department; }
+		}
+package madhu;
+public class Assignment {
+		    private String assignmentId;
+		    private Asset asset;
+		    private Employee employee;
+		    private String startDate, endDate, condition;
+		    public Assignment(String assignmentId, Asset asset, Employee employee, String startDate, String endDate, String condition) {
+		        this.assignmentId = assignmentId;
+		        this.asset = asset;
+		        this.employee = employee;
+		        this.startDate = startDate;
+		        this.endDate = endDate;
+		        this.condition = condition;
+		    }
+		    public String getAssignmentId() { return assignmentId; }
+		    public Asset getAsset() { return asset; }
+		    public Employee getEmployee() { return employee; }
+		    public String getStartDate() { return startDate; }
+		    public String getEndDate() { return endDate; }
+		    public String getCondition() { return condition; }
+		}
+package madhu;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+public class AssetService {
+		    private List<Asset> assets = new ArrayList<>();
+		    private List<Employee> employees = new ArrayList<>();
+		    private List<Assignment> assignments = new ArrayList<>();
+
+		    public void registerAsset(Asset asset) { assets.add(asset); }
+		    public void registerEmployee(Employee emp) { employees.add(emp); }
+
+		    public void assignAsset(String assetId, String empId) {
+		        assignAsset(assetId, empId, null);
+		    }
+		    public void assignAsset(String assetId, Employee emp) {
+		        assignAsset(assetId, emp.getEmpId(), null);
+		    }
+		    public void assignAsset(String assetId, String empId, String endDate) {
+		        Asset asset = findAsset(assetId);
+		        Employee emp = findEmployee(empId);
+		        if(asset != null && emp != null && asset.getStatus() == AssetStatus.IN_STOCK) {
+		            asset.setStatus(AssetStatus.ASSIGNED);
+		            asset.setAssignedTo(empId);
+		            String assignmentId = "A" + (assignments.size() + 1);
+		            Assignment assign = new Assignment(assignmentId, asset, emp, java.time.LocalDate.now().toString(), endDate, "Good");
+		            assignments.add(assign);
+		        }
+		    }
+		    public void returnAsset(String assetId) {
+		        Asset asset = findAsset(assetId);
+		        if(asset != null && asset.getStatus() == AssetStatus.ASSIGNED) {
+		            asset.setStatus(AssetStatus.IN_STOCK);
+		            asset.setAssignedTo(null);
+		            for(Assignment a : assignments) {
+		                if(a.getAsset().getAssetId().equals(assetId) && a.getEndDate() == null) {
+		                    a.getAsset().setStatus(AssetStatus.IN_STOCK);
+		                }
+		            }
+		        }
+		    }
+
+		    public void retireAsset(String assetId) {
+		        Asset asset = findAsset(assetId);
+		        if(asset != null) {
+		            asset.setStatus(AssetStatus.RETIRED);
+		        }
+		    }
+		    public void auditReport() {
+		        Map<String, Integer> deptMap = new HashMap<>();
+		        for(Assignment a : assignments) {
+		            String dept = a.getEmployee().getDepartment();
+		            deptMap.put(dept, deptMap.getOrDefault(dept, 0) + 1);
+		        }
+		        System.out.println("\n--- Audit Report ---");
+		        for(Asset asset : assets) {
+		            asset.display(); 
+		        }
+		        System.out.println("\nDepartment-wise asset counts:");
+		        for(String dept : deptMap.keySet()) {
+		            System.out.println(dept + " : " + deptMap.get(dept));
+		        }
+		    }
+
+		    private Asset findAsset(String assetId) {
+		        for(Asset asset : assets) if(asset.getAssetId().equals(assetId)) return asset;
+		        return null;
+		    }
+		    private Employee findEmployee(String empId) {
+		        for(Employee emp : employees) if(emp.getEmpId().equals(empId)) return emp;
+		        return null;
+		    }
+		}
+package madhu;
+public class AssetAppMain {
+		    public static void main(String[] args) {
+		        AssetService service = new AssetService();
+		        Employee e1 = new Employee("E001", "Madhu", "madhu@gmail.com", "IT");
+		        Employee e2 = new Employee("E002", "Sri", "sri@gmail.com", "IT");
+		        service.registerEmployee(e1);
+		        service.registerEmployee(e2);
+		        Asset l1 = new Laptop("L001", "Dell XPS", 16, 512);
+		        Asset p1 = new Phone("P001", "iPhone 13", "Verizon", 125);
+		        Asset m1 = new Moniter("M001", "LG UltraWide", 34);
+		        service.registerAsset(l1);
+		        service.registerAsset(p1);
+		        service.registerAsset(m1);
+		        service.assignAsset("L001", "E001");
+		        service.assignAsset("P001", e2);
+		        service.returnAsset("P001");
+		        service.retireAsset("L001");		        
+		        service.auditReport();
+		    }
+		}
+OUTPUT:
+--- Audit Report ---
+Laptop: Dell XPS RAM: 16GB Storage: 512GB
+Phone: iPhone 13 Carrier: Verizon Battery Cycles: 125
+Monitor: LG UltraWide Size: 34in
+
+Department-wise asset counts:
+IT : 2
+
+package madhu;
+public class AssetAppMain {
+		    public static void main(String[] args) {
+		        AssetService service = new AssetService();
+		        Employee e1 = new Employee("E001", "Madhu", "madhu@gmail.com", "IT");
+		        Employee e2 = new Employee("E002", "Sri", "sri@gmail.com", "IT");
+		        service.registerEmployee(e1);
+		        service.registerEmployee(e2);
+		        Asset l1 = new Laptop("L001", "Dell XPS", 16, 512);
+		        Asset p1 = new Phone("P001", "iPhone 13", "Verizon", 125);
+		        Asset m1 = new Moniter("M001", "LG UltraWide", 34);
+		        service.registerAsset(l1);
+		        service.registerAsset(p1);
+		        service.registerAsset(m1);
+		        service.assignAsset("L001", "E001");
+		        service.assignAsset("P001", e2);
+		        service.returnAsset("P001");
+		        service.retireAsset("L001");		        
+		        service.auditReport();
+		    }
+		}
